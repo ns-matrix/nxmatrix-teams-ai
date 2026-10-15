@@ -44,6 +44,9 @@ if not exist ".env" (
   echo Existing .env preserved.
 )
 
+set "BOT_PORT=3978"
+for /f "tokens=1,* delims==" %%A in ('findstr /B /I "BOT_PORT=" ".env"') do set "BOT_PORT=%%B"
+
 :menu
 echo.
 echo ================ NX MATRIX AI ================
