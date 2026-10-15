@@ -2,6 +2,8 @@
 
 NX Matrix AI is a Python Microsoft Teams bot that sends incoming messages to an OpenAI-compatible Chat Completions API. It supports local Ollama models and compatible hosted LLM providers.
 
+**Project website and visual setup guide:** open [`docs/index.html`](docs/index.html) in a browser, or enable GitHub Pages with the repository's `docs/` folder as the publishing source. The page covers the architecture, message workflow, Windows setup, configuration, security, testing, and troubleshooting. The vector logo is in [`assets/nx-matrix-logo.svg`](assets/nx-matrix-logo.svg).
+
 > **Current status:** Local conversation testing is intended for Microsoft 365 Agents Playground with the explicit local-only emulator mode below. Installing the bot in the real Teams client additionally requires registered bot credentials, a valid Teams app package, a publicly reachable HTTPS messaging endpoint, and a Microsoft 365 work or school tenant with the required permissions. A personal Microsoft account alone may not provide the tenant features required for custom app registration.
 
 ## Features
@@ -41,6 +43,8 @@ Or download the ZIP from GitHub and extract it.
 ```bat
 setup.bat
 ```
+
+For a guided one-click local launch after setup, run `start_all.bat`. It installs/verifies Python dependencies, offers local Playground, authenticated bot, API-test, and test-suite modes, and starts the bot in its own terminal. It never starts a public tunnel automatically. In local Playground mode, the unauthenticated setting is applied only to the child process launched by that script; use this mode only on localhost.
 
 The setup script creates a local `.venv`, upgrades pip, installs dependencies, and creates `.env` from `.env.example` if it does not already exist. Existing `.env` settings are preserved. The menu lets you run the bot, test the LLM API, check dependencies/configuration, start a tunnel, edit `.env`, or exit.
 
@@ -227,6 +231,8 @@ If the environment is corrupted, close the bot, delete `.venv`, and run `setup.b
 ```text
 nxmatrix-teams-ai/
 ├── .github/workflows/python-validation.yml
+├── assets/nx-matrix-logo.svg
+├── docs/index.html
 ├── src/
 │   └── main.py
 ├── tests/
@@ -240,6 +246,7 @@ nxmatrix-teams-ai/
 ├── run_local.bat
 ├── run_tunnel.bat
 ├── setup.bat
+├── start_all.bat
 └── README.md
 ```
 
