@@ -21,7 +21,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
       - name: Compile Python files
-        run: python -m compileall -q src check_api.py tests
+        run: python -m compileall -q src check_api.py check_tunnel_config.py tests
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
       - name: Check dependency metadata
