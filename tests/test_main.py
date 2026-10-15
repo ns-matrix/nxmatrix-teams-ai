@@ -69,8 +69,8 @@ class AskLlmTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 asyncio.run(main.ask_llm("test"))
 
-    def test_rejects_blank_content(self) -> None:
-        """Whitespace-only model output is not a useful completion."""
+    def test_returns_empty_string_for_blank_content(self) -> None:
+        """Whitespace-only model output is normalized so the message handler can use its fallback."""
         _, context, _ = self._mock_client(
             {"choices": [{"message": {"content": "   "}}]}
         )
