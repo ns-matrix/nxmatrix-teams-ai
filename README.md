@@ -147,7 +147,7 @@ A tunnel lets a remote service reach your local bot; it does not register or ins
 5. Copy the generated HTTPS address and configure the registered bot endpoint as `https://YOUR-TUNNEL-HOST/api/messages`.
 6. Keep both terminals open. Stop the tunnel when finished.
 
-The helper creates an anonymous tunnel for development convenience; treat its URL as public. It blocks tunnel startup when bot credentials are missing or local unauthenticated mode is enabled. A newly created tunnel may receive a different URL, so update the registered messaging endpoint when it changes. Never expose Ollama's port 11434. Use properly secured hosted infrastructure for production.
+The helper creates an anonymous tunnel for development convenience; treat its URL as public. Before tunneling, `check_tunnel_config.py` verifies all three bot credentials are set, rejects common truthy forms of the local unauthenticated flag, and validates `BOT_PORT`. A newly created tunnel may receive a different URL, so update the registered messaging endpoint when it changes. Never expose Ollama's port 11434. Use properly secured hosted infrastructure for production.
 
 ## Connect to the real Microsoft Teams client
 
