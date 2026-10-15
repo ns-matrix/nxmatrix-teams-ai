@@ -16,7 +16,7 @@ CLIENT_SECRET = os.getenv("CLIENT_SECRET", "").strip()
 TENANT_ID = os.getenv("TENANT_ID", "").strip()
 ALLOW_UNAUTHENTICATED_LOCAL = (
     os.getenv("DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS", "").strip().lower()
-    == "true"
+    in {"1", "true", "yes", "on"}
 )
 
 # Never silently run an unauthenticated endpoint. For a real Teams deployment,
