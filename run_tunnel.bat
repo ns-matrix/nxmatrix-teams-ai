@@ -8,15 +8,14 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-if not exist ".env" (
-  echo ERROR: .env is missing. Run setup.bat first.
+if not exist ".venv\Scripts\python.exe" (
+  echo ERROR: Run setup.bat first.
   pause
   exit /b 1
 )
-findstr /I /R /C:"^[ ]*DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS[ ]*=[ ]*true[ ]*$" ".env" >nul
-if not errorlevel 1 (
-  echo ERROR: Unauthenticated request mode is enabled in .env.
-  echo Remove/comment that setting before using a public tunnel.
+".venv\Scripts\python.exe" check_tunnel_config.py
+if errorlevel 1 (
+  echo Tunnel safety checks failed. Review the messages above.
   pause
   exit /b 1
 )
@@ -25,6 +24,7 @@ for /f "tokens=1,* delims==" %%A in ('findstr /B /I "BOT_PORT=" ".env"') do set 
 echo Start the bot in a separate terminal before hosting this tunnel.
 echo This tunnel is for temporary development only; treat its URL as public.
 echo Forwarding port %BOT_PORT%. Do not expose the Ollama port 11434.
+echo If a new tunnel URL is generated, update the registered messaging endpoint.
 devtunnel user login
 if errorlevel 1 goto :error
 devtunnel create --allow-anonymous

@@ -1,8 +1,13 @@
 """Unit tests for the LLM request builder and response handling."""
 
 import asyncio
+import os
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+# Unit tests intentionally use the isolated local emulator mode. No public
+# endpoint is started by these tests.
+os.environ.setdefault("DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS", "true")
 
 from src import main
 
@@ -10,21 +15,23 @@ from src import main
 class AskLlmTests(unittest.TestCase):
     """Verify request construction without requiring a live LLM provider."""
 
-    def test_uses_chat_completions_and_returns_text(self) -> None:
-        """The client should send the configured model and trim the response."""
+    def _mock_client(self, payload):
         response = MagicMock()
         response.raise_for_status.return_value = None
-        response.json.return_value = {
-            "choices": [{"message": {"content": "  Hello from mock  "}}]
-        }
-
+        response.json.return_value = payload
         client = MagicMock()
         client.post = AsyncMock(return_value=response)
         client_context = MagicMock()
         client_context.__aenter__.return_value = client
         client_context.__aexit__.return_value = False
+        return client, client_context, response
 
-        with patch("src.main.httpx.AsyncClient", return_value=client_context) as factory:
+    def test_uses_chat_completions_and_returns_text(self) -> None:
+        """The client should send the configured model and trim the response."""
+        client, context, response = self._mock_client(
+            {"choices": [{"message": {"content": "  Hello from mock  "}}]}
+        )
+        with patch("src.main.httpx.AsyncClient", return_value=context) as factory:
             answer = asyncio.run(main.ask_llm("Hello"))
 
         self.assertEqual(answer, "Hello from mock")
@@ -41,19 +48,12 @@ class AskLlmTests(unittest.TestCase):
 
     def test_accepts_base_url_that_already_has_completion_path(self) -> None:
         """The client should not append the completion path twice."""
-        response = MagicMock()
-        response.raise_for_status.return_value = None
-        response.json.return_value = {"choices": [{"message": {"content": "ok"}}]}
-
-        client = MagicMock()
-        client.post = AsyncMock(return_value=response)
-        client_context = MagicMock()
-        client_context.__aenter__.return_value = client
-        client_context.__aexit__.return_value = False
-
+        client, context, _ = self._mock_client(
+            {"choices": [{"message": {"content": "ok"}}]}
+        )
         with (
             patch("src.main.API_BASE_URL", "http://llm.example/v1/chat/completions"),
-            patch("src.main.httpx.AsyncClient", return_value=client_context),
+            patch("src.main.httpx.AsyncClient", return_value=context),
         ):
             self.assertEqual(asyncio.run(main.ask_llm("test")), "ok")
 
@@ -61,6 +61,21 @@ class AskLlmTests(unittest.TestCase):
             client.post.call_args.args[0],
             "http://llm.example/v1/chat/completions",
         )
+
+    def test_rejects_empty_choices(self) -> None:
+        """An empty provider choices array must be treated as an invalid response."""
+        _, context, _ = self._mock_client({"choices": []})
+        with patch("src.main.httpx.AsyncClient", return_value=context):
+            with self.assertRaises(ValueError):
+                asyncio.run(main.ask_llm("test"))
+
+    def test_returns_empty_string_for_blank_content(self) -> None:
+        """Whitespace-only model output is normalized so the message handler can use its fallback."""
+        _, context, _ = self._mock_client(
+            {"choices": [{"message": {"content": "   "}}]}
+        )
+        with patch("src.main.httpx.AsyncClient", return_value=context):
+            self.assertEqual(asyncio.run(main.ask_llm("test")), "")
 
 
 if __name__ == "__main__":

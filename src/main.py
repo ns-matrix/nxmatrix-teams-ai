@@ -11,10 +11,28 @@ from microsoft_teams.apps import ActivityContext, App
 
 load_dotenv()
 
-# SDK authentication remains enabled by default. To use an unauthenticated
-# emulator locally, explicitly set DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS=true
-# in .env and NEVER expose that configuration through a tunnel or production host.
-app = App()
+CLIENT_ID = os.getenv("CLIENT_ID", "").strip()
+CLIENT_SECRET = os.getenv("CLIENT_SECRET", "").strip()
+TENANT_ID = os.getenv("TENANT_ID", "").strip()
+ALLOW_UNAUTHENTICATED_LOCAL = (
+    os.getenv("DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS", "").strip().lower()
+    in {"1", "true", "yes", "on"}
+)
+
+# Never silently run an unauthenticated endpoint. For a real Teams deployment,
+# configure all three bot credentials. The explicit bypass is only for a local
+# Agents Playground/emulator and must never be used with a public tunnel.
+if all((CLIENT_ID, CLIENT_SECRET, TENANT_ID)):
+    app = App()
+elif ALLOW_UNAUTHENTICATED_LOCAL:
+    app = App(dangerously_allow_unauthenticated_requests=True)
+else:
+    raise RuntimeError(
+        "Teams bot credentials are missing. Configure CLIENT_ID, CLIENT_SECRET, "
+        "and TENANT_ID for authenticated use, or set "
+        "DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS=true only for local "
+        "Agents Playground testing. Do not expose local mode publicly."
+    )
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:11434/v1").rstrip("/")
 API_KEY = os.getenv("API_KEY", "ollama").strip()
@@ -61,7 +79,10 @@ async def ask_llm(message: str) -> str:
         response.raise_for_status()
         payload: dict[str, Any] = response.json()
         try:
-            content = payload["choices"][0]["message"]["content"]
+            choices = payload["choices"]
+            if not isinstance(choices, list) or not choices:
+                raise ValueError("The LLM returned no choices.")
+            content = choices[0]["message"]["content"]
         except (IndexError, KeyError, TypeError) as exc:
             raise ValueError("The LLM returned an unexpected Chat Completions response.") from exc
         if not isinstance(content, str):
