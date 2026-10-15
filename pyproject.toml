@@ -1,24 +1,25 @@
 [project]
 name = "nxmatrix-teams-ai"
-version = "0.1.0"
-description = "A Microsoft Teams echo bot"
-authors = [{ name = "Your Name", email = "you@example.com" }]
+version = "0.2.0"
+description = "NX Matrix AI Microsoft Teams bot with configurable OpenAI-compatible LLM providers"
+authors = [{ name = "NX Matrix" }]
 readme = "README.md"
 requires-python = ">=3.12"
-
 dependencies = [
-  "python-dotenv>=1.0.0",
-  "microsoft-teams-apps"
+  "httpx>=0.27,<1",
+  "python-dotenv>=1.0,<2",
+  "microsoft-teams-apps>=2.1.0,<3",
 ]
 
 [dependency-groups]
 dev = [
-    "pyright>=1.1.406",
+  "pytest>=8,<9",
+  "pytest-asyncio>=0.23,<2",
+  "pyright>=1.1.406",
 ]
 
 [project.scripts]
 start = "src.main:main"
-typecheck = "pyright.cli:entrypoint"
 
 [build-system]
 requires = ["hatchling"]
