@@ -66,18 +66,19 @@ echo.
 echo LOCAL MODE: the authentication bypass is set only for the
 echo child process launched by this script. Keep the bot local.
 echo Do not start a public tunnel in this mode.
-start "NX Matrix AI - Local Bot" cmd /k "cd /d ""%~dp0"" && set DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS=true && "".venv\Scripts\python.exe"" src\main.py"
+start "NX Matrix AI - Local Bot" /D "%~dp0" cmd /k "set DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS=true && .venv\Scripts\python.exe src\main.py"
 goto :openplayground
 
 :authenticated
 echo.
 echo Starting with credentials configured in .env.
 echo If credentials are missing, the bot will exit safely.
-start "NX Matrix AI - Authenticated Bot" cmd /k "cd /d ""%~dp0"" && set DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS= && "".venv\Scripts\python.exe"" src\main.py"
+start "NX Matrix AI - Authenticated Bot" /D "%~dp0" cmd /k "set DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS= && .venv\Scripts\python.exe src\main.py"
 goto :openplayground
 
 :openplayground
 timeout /t 2 /nobreak >nul
+start "" "%~dp0docs\index.html"
 start "" "https://learn.microsoft.com/microsoftteams/platform/"
 echo.
 echo Bot terminal opened in a separate window.
