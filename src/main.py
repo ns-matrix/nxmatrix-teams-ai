@@ -11,16 +11,16 @@ from microsoft_teams.apps import ActivityContext, App
 
 load_dotenv()
 
-# Keep the SDK's normal authentication validation enabled. For local emulator
-# testing, use the SDK's documented emulator configuration rather than disabling
-# authentication on a publicly reachable endpoint.
+# SDK authentication remains enabled by default. To use an unauthenticated
+# emulator locally, explicitly set DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS=true
+# in .env and NEVER expose that configuration through a tunnel or production host.
 app = App()
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:11434/v1").rstrip("/")
 API_KEY = os.getenv("API_KEY", "ollama").strip()
 API_MODEL = os.getenv("API_MODEL", "qwen2.5:3b").strip()
 API_TIMEOUT_SECONDS = float(os.getenv("API_TIMEOUT_SECONDS", "120"))
-BOT_PORT = int(os.getenv("BOT_PORT", "3978"))
+BOT_PORT = int(os.getenv("BOT_PORT", os.getenv("PORT", "3978")))
 SYSTEM_PROMPT = os.getenv(
     "SYSTEM_PROMPT",
     "You are NX Matrix AI, a professional business assistant. "
@@ -80,7 +80,7 @@ async def handle_message(ctx: ActivityContext[MessageActivity]) -> None:
     except httpx.TimeoutException:
         await ctx.send("NX Matrix AI timed out. Please try again shortly.")
     except httpx.HTTPStatusError as exc:
-        # Keep provider response bodies and API details out of user-facing chat.
+        # Keep provider response bodies and credentials out of user-facing chat.
         status = exc.response.status_code
         if status in (401, 403):
             await ctx.send("NX Matrix AI could not authenticate with the configured LLM provider. Check API_KEY.")
@@ -90,16 +90,13 @@ async def handle_message(ctx: ActivityContext[MessageActivity]) -> None:
             await ctx.send(f"NX Matrix AI received an error from the LLM provider (HTTP {status}).")
     except httpx.RequestError:
         await ctx.send("NX Matrix AI cannot connect to the configured LLM provider. Check that the service is running and API_BASE_URL is correct.")
-    except (KeyError, ValueError):
+    except (KeyError, TypeError, ValueError):
         await ctx.send("NX Matrix AI received an invalid response from the configured LLM provider.")
 
 
 def main() -> None:
     """Start the Teams bot service."""
-    # BOT_PORT is documented for launch scripts and deployment configuration.
-    # The Teams SDK's App.start() controls server binding in this SDK version;
-    # verify its port configuration behavior against the installed SDK.
-    asyncio.run(app.start())
+    asyncio.run(app.start(port=BOT_PORT))
 
 
 if __name__ == "__main__":
