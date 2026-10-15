@@ -1,56 +1,52 @@
 # NX Matrix AI — Microsoft Teams Bot
 
-NX Matrix AI is a Python Microsoft Teams bot that sends messages to an OpenAI-compatible Chat Completions API. It supports local Ollama models as well as compatible hosted LLM providers.
+NX Matrix AI is a Python Microsoft Teams bot that sends incoming messages to an OpenAI-compatible Chat Completions API. It supports local Ollama models and compatible hosted LLM providers.
 
-> **Current status:** The bot can be tested with Microsoft 365 Agents Playground. Installing it in the real Microsoft Teams client additionally requires a registered Teams bot/app identity, the correct messaging endpoint, and a Microsoft 365 work or school tenant with the necessary app permissions. A personal Microsoft account alone may not provide the developer tenant features required for registration.
+> **Current status:** Local conversation testing works with Microsoft 365 Agents Playground when its authentication setup is configured appropriately. Installing the bot in the real Teams client additionally requires a registered bot/app identity, a valid Teams app package, a publicly reachable HTTPS messaging endpoint, and a Microsoft 365 work or school tenant with the required permissions. A personal Microsoft account alone may not provide the tenant features required for custom app registration.
 
 ## Features
 
-- Microsoft Teams message handler built with `microsoft-teams-apps`.
-- Configurable OpenAI-compatible LLM endpoint, API key, model, timeout, and system prompt.
-- Local Ollama example configuration.
-- Windows setup and launch scripts.
-- API connectivity test utility.
+- Microsoft Teams message handling using `microsoft-teams-apps`.
+- Configurable LLM base URL, API key, model, timeout, and system prompt.
+- Ollama and hosted OpenAI-compatible provider support.
+- Windows setup menu and launch scripts.
+- API connectivity checker.
 - Optional Microsoft Dev Tunnels workflow for temporary HTTPS access.
-- Secrets are kept in a local `.env` file, which should never be committed.
+- Local `.env` secrets excluded from ordinary Git additions.
 
 ## Requirements
 
-- Windows 10/11 (instructions below use Command Prompt).
-- Python 3.12 or later.
-- Git (to clone the repository).
-- A running LLM endpoint:
-  - **Local:** Ollama installed, running, and with the selected model downloaded; or
-  - **Hosted:** an OpenAI-compatible provider base URL, API key, and model name.
-- For tunnel testing: Microsoft Dev Tunnels CLI.
-- For real Teams installation: a Teams app registration and a Microsoft 365 work/school tenant that permits custom app development/upload.
+- Windows 10 or 11; the commands below use Command Prompt (CMD).
+- Python 3.12 or later, installed and available as `python`.
+- Git, if cloning the repository.
+- Ollama with a model downloaded, or an OpenAI-compatible hosted API URL, API key, and model.
+- Microsoft Dev Tunnels CLI only if you need a temporary public HTTPS endpoint.
+- Real Teams installation requires a suitable Microsoft 365 work/school tenant and custom app permissions.
 
-## Quick start on Windows
+## Quick start (Windows)
 
-### 1. Download the project
+### 1. Clone the project
 
-Using Git:
+Open Command Prompt and run:
 
 ```bat
 git clone https://github.com/ns-matrix/nxmatrix-teams-ai.git
 cd nxmatrix-teams-ai
 ```
 
-Alternatively, download the repository ZIP from GitHub and extract it.
+Or download the ZIP from GitHub and extract it.
 
-### 2. Run the setup script
-
-Double-click `setup.bat`, or run it from Command Prompt:
+### 2. Run setup
 
 ```bat
 setup.bat
 ```
 
-The script creates a `.venv`, installs dependencies, and creates `.env` from `.env.example` if `.env` does not already exist. It preserves an existing `.env`.
+The setup script creates a local `.venv`, updates pip, installs the dependencies, and creates `.env` from `.env.example` if it does not already exist. Existing `.env` settings are preserved.
 
 ### 3. Configure the LLM
 
-Open `.env` in a text editor. The default local Ollama configuration is:
+Open `.env` in Notepad. The default configuration uses local Ollama:
 
 ```dotenv
 API_BASE_URL=http://127.0.0.1:11434/v1
@@ -61,144 +57,144 @@ BOT_PORT=3978
 SYSTEM_PROMPT=You are NX Matrix AI, a professional business assistant. Give clear, accurate, concise and useful answers.
 ```
 
-Make sure Ollama is running and the selected model is available. For example, in a separate terminal:
+Ensure Ollama is installed and running. To inspect models or download the default:
 
 ```bat
 ollama list
 ollama pull qwen2.5:3b
 ```
 
-If using a hosted provider, set its compatible API base URL, API key, and model. Example for OpenAI:
+For a hosted OpenAI-compatible provider, replace the values locally in `.env`. Example:
 
 ```dotenv
 API_BASE_URL=https://api.openai.com/v1
 API_KEY=your_real_api_key
 API_MODEL=gpt-4o-mini
 API_TIMEOUT_SECONDS=120
+BOT_PORT=3978
 ```
 
-Use the exact model ID supported by your provider. Do not put a real API key in `.env.example`, source code, screenshots, issue reports, or Git commits.
+Use the model identifier supported by your provider. Never put a real key in `.env.example`, source files, screenshots, public issue reports, or commits.
 
-### 4. Test the LLM connection
+### 4. Test the API settings
 
-From the project folder, run:
-
-```bat
-check_config.bat
-```
-
-or run the check directly:
+In the project folder, choose **Test LLM API configuration** in the setup menu, or run:
 
 ```bat
 .venv\Scripts\python.exe check_api.py
 ```
 
-A successful check prints the provider response. If it fails, verify the endpoint, key, model name, network access, and that the local Ollama service is running when using Ollama.
+The check sends a small Chat Completions request and prints the provider response. It validates API connectivity; it does not test Teams authentication.
 
-### 5. Start the bot
+### 5. Start the bot locally
 
-Use the setup menu and select **Run bot locally**, or launch:
+Run `setup.bat` and select **Run bot locally**, or run:
 
 ```bat
 run_local.bat
 ```
 
-Keep the terminal open. The server should report that it is running. The default local service port is `3978`, but confirm the port actually bound by your installed version of the Teams SDK.
-
-### 6. Test with Agents Playground
-
-Open Microsoft 365 Agents Playground and configure the local endpoint:
+Keep the terminal open. By default the service listens on port 3978 and exposes the SDK's messaging route at:
 
 ```text
 http://localhost:3978/api/messages
 ```
 
-Select the emulator/local test connection when appropriate and send a message. The local test channel is not the same as a real Teams conversation. If Playground's emulator requires a specific authentication setting, follow the SDK/Playground instructions for local testing; do not disable authentication on an internet-exposed production endpoint.
+### 6. Test with Agents Playground
+
+Open Microsoft 365 Agents Playground and configure the local endpoint above. Select the local/emulator connection supported by your Playground version and send a text message.
+
+If the Playground cannot authenticate to your local bot, it may require an explicit emulator-only unauthenticated setting. In `.env`, uncomment:
+
+```dotenv
+DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS=true
+```
+
+Use this only for local emulator testing. Restart the bot after changing it. **Do not start a public tunnel or expose the bot while this setting is enabled.** Re-comment/remove the setting before testing through a public endpoint or using production credentials. SDK authentication is enabled by default.
 
 ## Configuration reference
 
-| Variable | Meaning | Example |
+| Variable | Purpose | Example |
 |---|---|---|
-| `API_BASE_URL` | Base URL of the OpenAI-compatible API | `http://127.0.0.1:11434/v1` |
-| `API_KEY` | Provider key or placeholder for local Ollama | `ollama` |
-| `API_MODEL` | Model identifier known to the provider | `qwen2.5:3b` |
-| `API_TIMEOUT_SECONDS` | HTTP timeout in seconds | `120` |
-| `BOT_PORT` | Desired bot server port for script/deployment configuration | `3978` |
-| `SYSTEM_PROMPT` | Instructions sent before the user's message | A professional assistant prompt |
+| `API_BASE_URL` | OpenAI-compatible API base URL | `http://127.0.0.1:11434/v1` |
+| `API_KEY` | Provider key; local Ollama commonly uses a placeholder | `ollama` |
+| `API_MODEL` | Model identifier | `qwen2.5:3b` |
+| `API_TIMEOUT_SECONDS` | API request timeout | `120` |
+| `BOT_PORT` | Local HTTP port | `3978` |
+| `SYSTEM_PROMPT` | System instruction sent with each user request | Professional assistant prompt |
+| `DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS` | SDK auth bypass for isolated local emulator testing only | `true` (do not use with a tunnel) |
 
-The `API_BASE_URL` may be provided with or without the trailing `/chat/completions` path. The bot adds that path when needed.
+The code appends `/chat/completions` to `API_BASE_URL` unless that path is already present.
 
-## Temporary HTTPS tunnel
+## Temporary HTTPS tunnel (development only)
 
-A tunnel is useful when a remote service needs to reach your local bot. It does not register or install a Teams app.
+A tunnel lets a remote service reach your local bot; it does not register or install the Teams app.
 
-1. Start the bot and keep its terminal open.
-2. Open a **second** Command Prompt.
-3. Run `run_tunnel.bat`, or use the Dev Tunnels CLI commands shown by the script.
-4. Copy the generated HTTPS hostname and configure the remote bot messaging endpoint as:
+1. Make sure the bot is running in a separate terminal.
+2. Ensure `DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS` is **not** set to `true`.
+3. Open another Command Prompt and run `run_tunnel.bat`.
+4. Copy the generated HTTPS address.
+5. Configure the registered bot endpoint as `https://YOUR-TUNNEL-HOST/api/messages`.
+6. Keep the bot and tunnel terminals open during the test.
 
-   `https://YOUR-TUNNEL-HOST/api/messages`
+The tunnel helper uses anonymous tunnel access for development convenience; treat its URL as public, stop it when finished, and never expose Ollama's port 11434. Do not use the local emulator's unauthenticated mode through a public tunnel. Use properly authenticated and hosted infrastructure for production.
 
-5. Keep both the local server and tunnel running while testing.
+## Connect to the real Microsoft Teams client
 
-The tunnel script uses anonymous access for development convenience. Treat its URL as public, use it only for temporary testing, do not expose Ollama's port 11434, and stop the tunnel when finished. Use authenticated and appropriately hosted infrastructure for production. Tunnel URLs may change when a new tunnel is created.
+A working Agents Playground chat does not automatically add the bot to Teams. A real Teams deployment requires:
 
-## Connecting to the real Microsoft Teams client
-
-A working Agents Playground conversation does not automatically make the bot appear in Teams. For a real Teams installation you still need:
-
-1. An eligible Microsoft 365 work or school tenant and appropriate permissions.
-2. A registered bot/app identity with the required messaging endpoint.
+1. An eligible Microsoft 365 work or school tenant and permission to register/deploy Teams apps.
+2. A registered bot/app identity and correct HTTPS messaging endpoint.
 3. A valid Teams app manifest/package with personal scope configured.
-4. Custom app upload or admin deployment enabled in that tenant.
-5. A publicly reachable HTTPS endpoint while the bot is running.
+4. Custom app upload or administrator deployment enabled.
+5. SDK authentication configured with the registered app credentials/tenant.
 
-The endpoint for local tunnel testing is the current Dev Tunnel URL plus `/api/messages`; do not permanently hardcode an expired tunnel URL in the repository. A personal Microsoft account may be insufficient for tenant-based Teams app registration. If the CLI cannot obtain its developer/tenant token, resolve the tenant-access prerequisite rather than repeatedly changing the Python code.
+A personal Microsoft account may not provide the necessary tenant developer features. If Teams CLI reports that its developer/tenant token is unavailable, resolve the tenant and permission requirement rather than repeatedly changing this Python application.
 
-See Microsoft's [Teams developer documentation](https://learn.microsoft.com/microsoftteams/platform/) and [Teams Developer Portal](https://dev.teams.microsoft.com/).
+Microsoft resources: [Teams developer documentation](https://learn.microsoft.com/microsoftteams/platform/) · [Teams Developer Portal](https://dev.teams.microsoft.com/).
 
 ## Troubleshooting
 
-### `NX Matrix AI cannot connect to the configured LLM provider`
+### API connection fails
 
-- For Ollama, confirm the app is running and `http://127.0.0.1:11434` is reachable.
-- Check that `API_BASE_URL` is correct and includes `/v1` when required.
-- Run `check_config.bat` and inspect the resulting error.
+- For Ollama, confirm it is running and that the selected model appears in `ollama list`.
+- Verify `API_BASE_URL`, `API_MODEL`, and the hosted provider's `API_KEY`.
+- Run `check_api.py` from the project's virtual environment.
 
-### HTTP 401 or 403 from the LLM provider
+### LLM API returns HTTP 401/403
 
-Check `API_KEY`, provider account access, and whether the selected model is available to that key.
+Check the API key, account permission, and model access.
 
-### HTTP 404 from the LLM provider
+### LLM API returns HTTP 404
 
-Check `API_BASE_URL` and the exact `API_MODEL` identifier.
+Check the base URL and exact model ID. Confirm the provider supports an OpenAI-compatible Chat Completions endpoint.
 
-### Browser shows `404 Not Found` at the tunnel root
+### Browser shows 404 at the tunnel root
 
-The bot messaging route is `/api/messages`; the root route `/` is not a website and may return 404. A browser GET request is also not the same as an authenticated Teams messaging POST.
+The bot route is `/api/messages`; the root path `/` is not a user-facing web page. A browser GET request is not the same as an authenticated Teams POST request.
 
-### Tunnel reports it cannot connect to localhost
+### Tunnel cannot connect to localhost
 
-Start the Python bot first and verify the server is listening on port 3978, then start the tunnel in a second terminal. Do not stop the bot terminal while testing.
+Start the bot first and make sure it remains running. Then start the tunnel in a second terminal. The configured tunnel port must match `BOT_PORT`.
 
-### Bot fails to start after updating dependencies
+### Python dependency or startup errors
 
-From the project directory, run:
+Run:
 
 ```bat
+.venv\Scripts\python.exe -m pip check
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-If necessary, delete the local `.venv` and run `setup.bat` again. Keep your existing `.env` backed up locally.
+If the environment is corrupted, close the bot, delete `.venv`, and run `setup.bat` again. Keep your local `.env` before removing anything.
 
-## Security
+## Security notes
 
-- Never commit `.env`, provider keys, client secrets, certificates, or access tokens.
-- `.gitignore` prevents normal additions but does not remove secrets already committed in Git history.
-- If a secret has been pushed, revoke/rotate it with the provider and audit repository history.
-- Do not disable Teams authentication for publicly reachable endpoints.
-- Do not expose the Ollama API to the public internet.
-- Development tunnels are temporary and should not be treated as production hosting.
+- Never commit `.env`, keys, client secrets, certificates, or access tokens.
+- `.gitignore` does not remove a secret already present in Git history. Revoke/rotate exposed credentials and audit the full history if a secret was pushed.
+- Do not disable Teams authentication on an internet-exposed endpoint.
+- Do not expose Ollama's port 11434 publicly.
+- Temporary tunnels are not production hosting.
 
 ## Project structure
 
