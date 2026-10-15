@@ -63,7 +63,7 @@ if errorlevel 2 goto :test
 if errorlevel 1 goto :run
 
 :run
-echo Starting NX Matrix AI. Leave this window open; use Ctrl+C to stop the bot.
+echo Starting NX Matrix AI on port %BOT_PORT%. Leave this window open; use Ctrl+C to stop the bot.
 ".venv\Scripts\python.exe" src\main.py
 echo Bot process stopped.
 goto :menu
@@ -85,28 +85,7 @@ pause
 goto :menu
 
 :tunnel
-where devtunnel >nul 2>nul
-if errorlevel 1 (
-  echo Microsoft Dev Tunnels CLI is not installed.
-  echo Install using winget install Microsoft.devtunnel, then reopen Command Prompt.
-  pause
-  goto :menu
-)
-echo IMPORTANT: Start the bot first in another terminal. This tunnel forwards port 3978.
-echo Dev Tunnel links may be public; use only for temporary development testing.
-devtunnel user login
-if errorlevel 1 goto :tunnelerror
-devtunnel create --allow-anonymous
-if errorlevel 1 goto :tunnelerror
-devtunnel port create -p 3978
-if errorlevel 1 goto :tunnelerror
-devtunnel host
-pause
-goto :menu
-
-:tunnelerror
-echo Tunnel command failed. Check the error and ensure the bot is running in another terminal.
-pause
+call run_tunnel.bat
 goto :menu
 
 :edit
