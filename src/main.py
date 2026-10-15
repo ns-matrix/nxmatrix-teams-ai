@@ -60,7 +60,10 @@ async def ask_llm(message: str) -> str:
         )
         response.raise_for_status()
         payload: dict[str, Any] = response.json()
-        content = payload["choices"][0]["message"]["content"]
+        try:
+            content = payload["choices"][0]["message"]["content"]
+        except (IndexError, KeyError, TypeError) as exc:
+            raise ValueError("The LLM returned an unexpected Chat Completions response.") from exc
         if not isinstance(content, str):
             raise ValueError("The LLM returned non-text message content.")
         return content.strip()
@@ -90,12 +93,12 @@ async def handle_message(ctx: ActivityContext[MessageActivity]) -> None:
             await ctx.send(f"NX Matrix AI received an error from the LLM provider (HTTP {status}).")
     except httpx.RequestError:
         await ctx.send("NX Matrix AI cannot connect to the configured LLM provider. Check that the service is running and API_BASE_URL is correct.")
-    except (KeyError, TypeError, ValueError):
+    except (KeyError, IndexError, TypeError, ValueError):
         await ctx.send("NX Matrix AI received an invalid response from the configured LLM provider.")
 
 
 def main() -> None:
-    """Start the Teams bot service."""
+    """Start the Teams bot service on the configured port."""
     asyncio.run(app.start(port=BOT_PORT))
 
 
