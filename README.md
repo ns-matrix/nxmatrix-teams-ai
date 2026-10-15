@@ -1,56 +1,71 @@
-# NX Matrix AI — Microsoft Teams Bot
+# NX Matrix AI — Microsoft Teams AI Bot
 
-NX Matrix AI is a Python Microsoft Teams bot that sends incoming messages to an OpenAI-compatible Chat Completions API. It supports local Ollama models and compatible hosted LLM providers.
+A Windows-first Python bot that connects Microsoft Teams-compatible chat to **Ollama** or another **OpenAI-compatible Chat Completions API**.
 
-**Project website and visual setup guide:** open [`docs/index.html`](docs/index.html) in a browser, or enable GitHub Pages with the repository's `docs/` folder as the publishing source. The page covers the architecture, message workflow, Windows setup, configuration, security, testing, and troubleshooting. The vector logo is in [`assets/nx-matrix-logo.svg`](assets/nx-matrix-logo.svg).
+> **Start here:** This guide is written for Windows 10/11 and Command Prompt (CMD). You can run the bot locally with Agents Playground before configuring a real Microsoft Teams deployment.
 
-> **Current status:** Local conversation testing is intended for Microsoft 365 Agents Playground with the explicit local-only emulator mode below. Installing the bot in the real Teams client additionally requires registered bot credentials, a valid Teams app package, a publicly reachable HTTPS messaging endpoint, and a Microsoft 365 work or school tenant with the required permissions. A personal Microsoft account alone may not provide the tenant features required for custom app registration.
+[Project website & visual guide](docs/index.html) · [Source code](https://github.com/ns-matrix/nxmatrix-teams-ai) · [Report a bug](https://github.com/ns-matrix/nxmatrix-teams-ai/issues)
 
-## Features
+---
 
-- Microsoft Teams message handling using `microsoft-teams-apps`.
-- Configurable LLM base URL, API key, model, timeout, and system prompt.
-- Ollama and hosted OpenAI-compatible provider support.
-- Windows setup menu and launch scripts.
-- API connectivity checker and automated Python tests.
-- Optional Microsoft Dev Tunnels workflow for temporary HTTPS access.
-- Local `.env` secrets excluded from ordinary Git additions.
+## What it does
 
-## Requirements
+- Receives chat activities through the Microsoft Teams SDK.
+- Sends prompts to a configurable language model API.
+- Supports local Ollama and compatible hosted API providers.
+- Includes Windows setup and launch scripts.
+- Includes an API connectivity check, configuration checks, and unit tests.
+- Supports an optional development tunnel for an authenticated bot.
 
-- Windows 10 or 11; commands below use Command Prompt (CMD).
-- Python 3.12 or later, installed and available as `python`.
-- Git, if cloning the repository.
-- Ollama with a model downloaded, or an OpenAI-compatible hosted API URL, API key, and model.
-- Microsoft Dev Tunnels CLI only if you need a temporary public HTTPS endpoint.
-- Real Teams installation requires a suitable Microsoft 365 work/school tenant and custom app permissions.
+## Before you begin
 
-## Quick start (Windows)
+Install:
 
-### 1. Clone the project
+- **Windows 10 or 11**
+- **Python 3.12+**, available as `python` in Command Prompt
+- **Git** (or download the repository ZIP)
+- **Ollama** with a model downloaded, or an OpenAI-compatible API URL, API key, and model name
+- **Microsoft Dev Tunnels CLI** only if you need a temporary HTTPS tunnel
 
-Open Command Prompt and run:
+A local Agents Playground session is not the same as deploying an app to the real Teams client. Real Teams deployment requires a suitable Microsoft 365 work/school tenant, bot registration, valid credentials, a Teams app package, and a publicly reachable HTTPS messaging endpoint.
+
+---
+
+## Quick start (recommended)
+
+### 1. Download the project
+
+Open **Command Prompt** and run:
 
 ```bat
 git clone https://github.com/ns-matrix/nxmatrix-teams-ai.git
 cd nxmatrix-teams-ai
 ```
 
-Or download the ZIP from GitHub and extract it.
+Alternatively, use **Code → Download ZIP** on GitHub and extract the archive.
 
-### 2. Run setup
+### 2. Run the setup wizard
 
 ```bat
 setup.bat
 ```
 
-For a guided one-click local launch after setup, run `start_all.bat`. It installs/verifies Python dependencies, offers local Playground, authenticated bot, API-test, and test-suite modes, and starts the bot in its own terminal. It never starts a public tunnel automatically. In local Playground mode, the unauthenticated setting is applied only to the child process launched by that script; use this mode only on localhost.
+The script creates a local `.venv`, installs dependencies, and creates `.env` from `.env.example` if it does not already exist. Existing `.env` settings are preserved.
 
-The setup script creates a local `.venv`, upgrades pip, installs dependencies, and creates `.env` from `.env.example` if it does not already exist. Existing `.env` settings are preserved. The menu lets you run the bot, test the LLM API, check dependencies/configuration, start a tunnel, edit `.env`, or exit.
+### 3. Check your model
 
-### 3. Configure the LLM
+For Ollama, open or keep Ollama running, then use Command Prompt:
 
-Open `.env` in Notepad. The default configuration uses local Ollama:
+```bat
+ollama list
+ollama pull qwen2.5:3b
+```
+
+If the model is already listed, you do not need to download it again.
+
+### 4. Configure the local test mode
+
+Open the project's `.env` file in Notepad. The default provider configuration is:
 
 ```dotenv
 API_BASE_URL=http://127.0.0.1:11434/v1
@@ -60,14 +75,64 @@ API_TIMEOUT_SECONDS=120
 BOT_PORT=3978
 ```
 
-Ensure Ollama is installed and running. To inspect models or download the default:
+For **local Agents Playground testing only**, enable the explicit local authentication bypass in `.env`:
 
-```bat
-ollama list
-ollama pull qwen2.5:3b
+```dotenv
+DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS=true
 ```
 
-For a hosted OpenAI-compatible provider, replace the values locally in `.env`. Example:
+This bypass is only for a bot bound to localhost during local testing. **Never use this setting with a public tunnel or a real Teams deployment.** Do not expose Ollama's port 11434 to the internet.
+
+### 5. Start the bot
+
+For a guided launcher, run:
+
+```bat
+start_all.bat
+```
+
+Choose the local Agents Playground mode. Or start the bot directly:
+
+```bat
+run_local.bat
+```
+
+Keep the bot terminal open. The default messaging endpoint is:
+
+```text
+http://localhost:3978/api/messages
+```
+
+### 6. Send a test message
+
+1. Open Microsoft 365 Agents Playground.
+2. Configure it to use the local messaging endpoint shown above.
+3. Send a message and confirm that the bot responds.
+4. Stop the bot with **Ctrl+C** when you finish.
+5. Remove or comment out the local authentication bypass before using a tunnel or deploying anywhere.
+
+The exact Playground interface can vary by version.
+
+---
+
+## Choose the right workflow
+
+| Goal | What to run | Notes |
+|---|---|---|
+| First-time setup | `setup.bat` | Creates the virtual environment and installs dependencies |
+| Guided launcher | `start_all.bat` | Menu for local testing, authenticated bot, API check, and tests |
+| Start the bot directly | `run_local.bat` | Uses settings from `.env` |
+| Check the model API | `.venv\Scripts\python.exe check_api.py` | Requires a reachable configured provider |
+| Run unit tests | Command shown in [Testing](#testing) | Uses mocked responses; no live model required |
+| Temporary development tunnel | `run_tunnel.bat` | Authenticated development only; never use with the local bypass |
+
+The launcher does **not** start a public tunnel automatically.
+
+---
+
+## Use a hosted API instead of Ollama
+
+Open `.env` and enter the URL, key, and model identifier supplied by your provider. For example:
 
 ```dotenv
 API_BASE_URL=https://api.openai.com/v1
@@ -77,138 +142,93 @@ API_TIMEOUT_SECONDS=120
 BOT_PORT=3978
 ```
 
-Use the model identifier supported by your provider. Never put a real key in `.env.example`, source files, screenshots, public issue reports, or commits.
+Use the exact model name and compatible endpoint supported by your provider. The example is illustrative; provider availability and model access depend on your account.
 
-### 4. Choose a Teams authentication mode
-
-**Local Agents Playground only:** leave `CLIENT_ID`, `CLIENT_SECRET`, and `TENANT_ID` empty, and explicitly uncomment this line in `.env`:
-
-```dotenv
-DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS=true
-```
-
-This bypasses Teams request authentication. Use it only when the bot is bound to your local machine for emulator testing. Never enable it while using a public tunnel or deploying to Teams.
-
-**Authenticated Teams deployment:** configure valid `CLIENT_ID`, `CLIENT_SECRET`, and `TENANT_ID` values for your registered bot. Keep the unauthenticated setting absent or commented out. The tunnel script refuses to start unless all three credential values are present.
-
-### 5. Test the LLM API settings
-
-In `setup.bat`, choose **Test LLM API configuration**, or run:
-
-```bat
-.venv\Scripts\python.exe check_api.py
-```
-
-The check sends a small Chat Completions request and prints the provider response. It validates API connectivity; it does not test Teams authentication.
-
-### 6. Start the bot locally
-
-Run `setup.bat` and select **Run bot locally**, or run:
-
-```bat
-run_local.bat
-```
-
-Keep the terminal open. By default, the service listens on port 3978 and exposes the SDK messaging route at:
-
-```text
-http://localhost:3978/api/messages
-```
-
-### 7. Test with Agents Playground
-
-1. Enable the local-only authentication bypass as described in step 4.
-2. Start the bot with `run_local.bat` or setup menu option 1.
-3. Open Microsoft 365 Agents Playground and configure the local endpoint above.
-4. Select the local/emulator connection supported by your Playground version and send a text message.
-5. When finished, stop the bot with Ctrl+C and remove/comment the local-only bypass before any tunnel or deployment use.
+**Keep API keys private.** Do not commit `.env`, put real keys in `.env.example`, or share keys in screenshots, issue reports, or chat logs. If a key is exposed, revoke it and create a replacement.
 
 ## Configuration reference
 
 | Variable | Purpose | Example |
 |---|---|---|
 | `API_BASE_URL` | OpenAI-compatible API base URL | `http://127.0.0.1:11434/v1` |
-| `API_KEY` | Provider key; local Ollama commonly uses a placeholder | `ollama` |
+| `API_KEY` | Provider API key; Ollama commonly uses a placeholder | `ollama` |
 | `API_MODEL` | Model identifier | `qwen2.5:3b` |
-| `API_TIMEOUT_SECONDS` | API request timeout | `120` |
-| `BOT_PORT` | Local HTTP port used by bot and tunnel | `3978` |
-| `SYSTEM_PROMPT` | System instruction sent with each user request | Professional assistant prompt |
-| `CLIENT_ID` | Registered Teams bot/application ID | Supplied by your bot registration |
+| `API_TIMEOUT_SECONDS` | Request timeout in seconds | `120` |
+| `BOT_PORT` | Local bot HTTP port | `3978` |
+| `SYSTEM_PROMPT` | Instruction provided to the model | Your assistant instructions |
+| `CLIENT_ID` | Registered bot/application ID | From bot registration |
 | `CLIENT_SECRET` | Registered bot secret | Keep private |
-| `TENANT_ID` | Microsoft Entra tenant ID | Supplied by your tenant |
-| `DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS` | Auth bypass for local emulator testing only | `true` only on localhost |
+| `TENANT_ID` | Microsoft Entra tenant ID | From your tenant |
+| `DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS` | Local emulator authentication bypass | `true` only for localhost testing |
 
-The code appends `/chat/completions` to `API_BASE_URL` unless that path is already present.
+The app uses the Chat Completions route and appends `/chat/completions` to `API_BASE_URL` unless it is already included.
 
-## Temporary HTTPS tunnel (development only)
+## Real Microsoft Teams deployment
 
-A tunnel lets a remote service reach your local bot; it does not register or install the Teams app.
+A successful local Playground test does **not** automatically install the bot in Teams. Real Teams deployment needs:
 
-1. Configure valid `CLIENT_ID`, `CLIENT_SECRET`, and `TENANT_ID` values in `.env`.
-2. Ensure `DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS` is absent or commented out.
-3. Start the bot in one terminal and keep it running.
-4. Open another Command Prompt and run `run_tunnel.bat` (or choose setup menu option 4).
-5. Copy the generated HTTPS address and configure the registered bot endpoint as `https://YOUR-TUNNEL-HOST/api/messages`.
-6. Keep both terminals open. Stop the tunnel when finished.
+1. An eligible Microsoft 365 work or school tenant and permission to develop/deploy custom apps.
+2. A registered bot/application identity and valid credentials.
+3. A publicly reachable HTTPS messaging endpoint configured for that bot.
+4. A valid Teams app manifest/package and the required app scopes.
+5. Authentication configured with the registered application credentials.
 
-The helper creates an anonymous tunnel for development convenience; treat its URL as public. Before tunneling, `check_tunnel_config.py` verifies all three bot credentials are set, rejects common truthy forms of the local unauthenticated flag, and validates `BOT_PORT`. A newly created tunnel may receive a different URL, so update the registered messaging endpoint when it changes. Never expose Ollama's port 11434. Use properly secured hosted infrastructure for production.
+For an authenticated bot, configure `CLIENT_ID`, `CLIENT_SECRET`, and `TENANT_ID` in your local `.env`, and leave the unauthenticated bypass unset or commented out.
 
-## Connect to the real Microsoft Teams client
+A personal Microsoft account may not provide the tenant developer features needed for custom bot registration. If tenant authentication or a developer token is unavailable, resolve the tenant and permission requirements first.
 
-A working Agents Playground chat does not automatically add the bot to Teams. A real Teams deployment requires:
+References: [Microsoft Teams developer documentation](https://learn.microsoft.com/microsoftteams/platform/) · [Teams Developer Portal](https://dev.teams.microsoft.com/)
 
-1. An eligible Microsoft 365 work or school tenant and permission to register/deploy Teams apps.
-2. A registered bot/application identity with valid credentials and a correctly configured HTTPS messaging endpoint.
-3. A valid Teams app manifest/package with the intended scopes configured.
-4. Custom app upload or administrator deployment enabled.
-5. SDK authentication configured with the registered app credentials and tenant.
+## Optional: temporary HTTPS tunnel
 
-A personal Microsoft account may not provide the necessary tenant developer features. If Teams CLI reports that its developer/tenant token is unavailable, resolve the tenant and permission requirement rather than repeatedly changing this Python application.
+Use a tunnel only when you have an authenticated, registered bot. A tunnel makes your local service reachable remotely; it does not register or install a Teams app.
 
-Microsoft resources: [Teams developer documentation](https://learn.microsoft.com/microsoftteams/platform/) · [Teams Developer Portal](https://dev.teams.microsoft.com/).
+1. Configure valid `CLIENT_ID`, `CLIENT_SECRET`, and `TENANT_ID` values.
+2. Remove or comment out `DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS`.
+3. Start the bot and keep its terminal open.
+4. In a second Command Prompt, run `run_tunnel.bat`.
+5. Configure the registered messaging endpoint as `https://YOUR-TUNNEL-HOST/api/messages`.
+6. Keep both terminals open and stop the tunnel when finished.
 
-## Run tests
+The tunnel URL should be treated as public and may change. Never expose Ollama's port 11434. Use properly secured hosting for production.
 
-Install dependencies, then run:
+## Testing
+
+Run these commands from the repository root after setup:
 
 ```bat
+.venv\Scripts\python.exe check_api.py
 .venv\Scripts\python.exe -m compileall -q src check_api.py tests
 .venv\Scripts\python.exe -m unittest discover -s tests -v
 .venv\Scripts\python.exe -m pip check
 ```
 
-The unit tests mock LLM responses and do not require a live provider. Run `check_api.py` separately for a live local/hosted API connectivity test.
+- `check_api.py` sends a request to the configured provider, so that provider must be running/reachable.
+- Unit tests mock model responses and do not require a live API.
+- `compileall` checks Python syntax.
+- `pip check` checks installed dependency compatibility.
 
 ## Troubleshooting
 
-### API connection fails
+### Ollama connection refused
+Confirm Ollama is running, check `ollama list`, and verify `API_BASE_URL`. Make sure the requested model is installed.
 
-- For Ollama, confirm it is running and that the selected model appears in `ollama list`.
-- Verify `API_BASE_URL`, `API_MODEL`, and the hosted provider's `API_KEY`.
-- Run `check_api.py` from the project's virtual environment.
+### API returns HTTP 401 or 403
+Check the API key, provider account permissions, and model access. Do not paste the key into public logs.
 
-### LLM API returns HTTP 401/403
+### API returns HTTP 404
+Verify the base URL and model identifier. The provider must support OpenAI-compatible Chat Completions.
 
-Check the API key, account permission, and model access.
+### Bot reports missing Teams credentials
+For localhost Playground tests, use the explicit local-only bypass. For a tunnel or real Teams, configure valid registered bot credentials instead.
 
-### LLM API returns HTTP 404
+### Browser shows 404 at the root URL
+The bot is a messaging endpoint, not a web chat page. Use `/api/messages` with Agents Playground; the root URL is not expected to display a chat UI.
 
-Check the base URL and exact model ID. Confirm the provider supports an OpenAI-compatible Chat Completions endpoint.
+### Tunnel cannot connect
+Start the bot first, then start the tunnel in a separate terminal. Confirm the tunnel's port matches `BOT_PORT`.
 
-### Bot says Teams credentials are missing
-
-For local Playground testing, explicitly enable the local-only setting. For a public endpoint or real Teams, configure the registered bot credentials instead.
-
-### Browser shows 404 at the tunnel root
-
-The bot route is `/api/messages`; the root path `/` is not a user-facing web page. A browser GET request is not the same as an authenticated Teams POST request.
-
-### Tunnel cannot connect to localhost
-
-Start the bot first and keep it running. Then start the tunnel in a second terminal. The configured tunnel port must match `BOT_PORT`.
-
-### Python dependency or startup errors
-
+### Dependencies or startup are broken
 Run:
 
 ```bat
@@ -216,38 +236,35 @@ Run:
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-If the environment is corrupted, close the bot, delete `.venv`, and run `setup.bat` again. Preserve your local `.env` before removing anything.
+If the virtual environment is corrupted, close the bot, preserve your local `.env`, delete `.venv`, and run `setup.bat` again.
 
-## Security notes
+## Security checklist
 
-- Never commit `.env`, keys, client secrets, certificates, or access tokens.
-- `.gitignore` does not remove a secret already present in Git history. Revoke/rotate exposed credentials and audit the full history if a secret was pushed.
-- Do not disable Teams authentication on an internet-exposed endpoint.
-- Do not expose Ollama's port 11434 publicly.
-- Temporary tunnels are not production hosting.
+- [ ] Keep `.env` and all credentials out of commits.
+- [ ] Never use unauthenticated mode on a public endpoint.
+- [ ] Never expose Ollama's port 11434 publicly.
+- [ ] Treat temporary tunnel URLs as public.
+- [ ] Rotate any credential that was exposed; `.gitignore` does not erase secrets from Git history.
+- [ ] Use secured, monitored hosting for production workloads.
 
 ## Project structure
 
 ```text
 nxmatrix-teams-ai/
-├── .github/workflows/python-validation.yml
-├── assets/nx-matrix-logo.svg
-├── docs/index.html
-├── src/
-│   └── main.py
-├── tests/
-│   └── test_main.py
-├── .env.example
-├── .gitignore
-├── check_api.py
-├── check_config.bat
-├── requirements.txt
-├── pyproject.toml
-├── run_local.bat
-├── run_tunnel.bat
-├── setup.bat
-├── start_all.bat
-└── README.md
+├── .github/workflows/       # Automated Python validation
+├── assets/                  # Project artwork
+├── docs/index.html          # Visual setup guide and project hub
+├── src/main.py              # Bot and LLM integration
+├── tests/                   # Unit tests
+├── .env.example             # Safe configuration template
+├── check_api.py             # Live provider connectivity check
+├── check_tunnel_config.py   # Tunnel configuration guard
+├── requirements.txt         # Python dependencies
+├── run_local.bat            # Start the bot
+├── run_tunnel.bat           # Optional development tunnel
+├── setup.bat                # Setup menu
+├── start_all.bat            # Guided launcher
+└── README.md                # This guide
 ```
 
 ## License
