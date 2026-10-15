@@ -1,4 +1,16 @@
-# NX Matrix AI — Microsoft Teams AI Bot
+<p align="center">
+  <img src="assets/nx-matrix-teams-ai-logo.webp" alt="NX Matrix AI — Microsoft Teams AI Bot logo" width="280">
+</p>
+
+<h1 align="center">NX Matrix AI — Microsoft Teams AI Bot</h1>
+
+<p align="center">
+  <strong>Connect Microsoft Teams-compatible chat to Ollama or an OpenAI-compatible AI model.</strong>
+</p>
+
+<p align="center">
+  <a href="docs/index.html">Project Guide</a> · <a href="https://github.com/ns-matrix/nxmatrix-teams-ai/actions">CI Checks</a> · <a href="https://github.com/ns-matrix/nxmatrix-teams-ai/issues">Report an Issue</a>
+</p>
 
 A Windows-first Python bot that connects Microsoft Teams-compatible chat to **Ollama** or another **OpenAI-compatible Chat Completions API**.
 
