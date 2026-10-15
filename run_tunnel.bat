@@ -8,10 +8,9 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-echo This creates a public tunnel to port 3978.
-echo Keep the Python bot running in a separate terminal.
-echo Use only for development. Stop with Ctrl+C when finished.
-echo.
+echo Start the bot in a separate terminal before hosting this tunnel.
+echo This uses anonymous tunnel access for temporary development only.
+echo Do not expose the Ollama port 11434.
 devtunnel user login
 if errorlevel 1 goto :error
 devtunnel create --allow-anonymous
@@ -22,6 +21,6 @@ devtunnel host
 pause
 exit /b 0
 :error
-echo Tunnel command failed. Review the error above.
+echo Tunnel command failed. Check the error above.
 pause
 exit /b 1
