@@ -1,4 +1,4 @@
-"""Connectivity test for the configured OpenAI-compatible chat completions API."""
+"""Connectivity test for the configured OpenAI-compatible Chat Completions API."""
 
 import asyncio
 import os
@@ -21,6 +21,7 @@ if API_KEY:
 
 
 async def main() -> int:
+    """Send a minimal request to verify the configured LLM endpoint."""
     print(f"Base URL: {BASE_URL}")
     print(f"Model: {MODEL}")
     print("Sending test request...")
@@ -47,7 +48,7 @@ async def main() -> int:
         print("API test timed out. Increase API_TIMEOUT_SECONDS or check provider availability.")
     except httpx.RequestError as exc:
         print(f"API request failed ({type(exc).__name__}). Check API_BASE_URL and network/service status.")
-    except (KeyError, TypeError, ValueError) as exc:
+    except (KeyError, IndexError, TypeError, ValueError) as exc:
         print(f"API returned an unexpected response ({type(exc).__name__}).")
     return 1
 
