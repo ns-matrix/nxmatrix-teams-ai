@@ -1,4 +1,4 @@
-"""Unit tests for the OpenAI-compatible LLM client."""
+"""Unit tests for the LLM request builder and response handling."""
 
 import asyncio
 import unittest
@@ -8,7 +8,10 @@ from src import main
 
 
 class AskLlmTests(unittest.TestCase):
+    """Verify request construction without requiring a live LLM provider."""
+
     def test_uses_chat_completions_and_returns_text(self) -> None:
+        """The client should send the configured model and trim the response."""
         response = MagicMock()
         response.raise_for_status.return_value = None
         response.json.return_value = {
@@ -26,9 +29,8 @@ class AskLlmTests(unittest.TestCase):
 
         self.assertEqual(answer, "Hello from mock")
         factory.assert_called_once_with(timeout=main.API_TIMEOUT_SECONDS)
-        called_url = client.post.call_args.args[0]
         self.assertEqual(
-            called_url,
+            client.post.call_args.args[0],
             f"{main.API_BASE_URL}/chat/completions",
         )
         payload = client.post.call_args.kwargs["json"]
@@ -38,6 +40,7 @@ class AskLlmTests(unittest.TestCase):
         response.raise_for_status.assert_called_once()
 
     def test_accepts_base_url_that_already_has_completion_path(self) -> None:
+        """The client should not append the completion path twice."""
         response = MagicMock()
         response.raise_for_status.return_value = None
         response.json.return_value = {"choices": [{"message": {"content": "ok"}}]}
