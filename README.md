@@ -175,6 +175,100 @@ Use the exact model name and compatible endpoint supported by your provider. The
 
 The app uses the Chat Completions route and appends `/chat/completions` to `API_BASE_URL` unless it is already included.
 
+
+## Packages and developer tools: what they do
+
+The current `requirements.txt` is the authoritative Python dependency list for this repository:
+
+| Package | Why it is needed |
+|---|---|
+| `microsoft-teams-apps` | Teams app/agent SDK used by the project's Python integration and message handling. |
+| `httpx` | Makes HTTP requests to the configured language-model API, with timeout and connection handling. |
+| `python-dotenv` | Loads local settings from `.env` without hard-coding configuration or secrets in source code. |
+
+The project currently declares these ranges in `requirements.txt`:
+
+```text
+httpx>=0.27,<1
+python-dotenv>=1.0,<2
+microsoft-teams-apps>=2.1.0,<3
+```
+
+Do not replace these with a generic `botbuilder-core` / `openai` package list unless the source code is actually changed to use those APIs. The earlier package names are not the declared dependencies of the current repository.
+
+### Install dependencies on Windows
+
+```bat
+py -3.12 -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip check
+```
+
+A virtual environment isolates dependencies from other Python projects. `pip check` reports incompatible installed package requirements. The project's tests use Python's built-in `unittest`, so `pytest` is not required unless you choose to add it. Optional developer tools such as `pytest`, `pytest-asyncio`, and `ruff` should only be added if the project configuration uses them.
+
+### Microsoft 365 Agents Playground: local testing
+
+Agents Playground is a local browser-based client for testing a running bot. It sends messages to the bot endpoint, displays replies and logs, and can simulate channel activities. It is useful before registering or installing an app in real Teams; it does not publish the app or prove that tenant authentication and production deployment work.
+
+Install using Windows Package Manager:
+
+```bat
+winget install agentsplayground
+```
+
+Or install the npm CLI (requires Node.js/npm):
+
+```bat
+npm install -g @microsoft/m365agentsplayground
+agentsplayground --help
+```
+
+Start the bot, then in another terminal run:
+
+```bat
+agentsplayground -e http://localhost:3978/api/messages -c emulator
+```
+
+Use the exact endpoint and port configured for your bot. Depending on the Playground version, the `-c` channel can be `emulator` or `msteams`; choose `msteams` when testing Teams-specific activity shapes and when supported by your installed version. Check `agentsplayground --help` for available options.
+
+**Security:** Playground may send local test requests without production authentication. Any unauthenticated bypass must be restricted to localhost development. Never combine it with a public tunnel or production deployment.
+
+### Microsoft Teams Developer CLI
+
+The Teams Developer CLI (`@microsoft/teams.cli`) is a separate Node.js tool for Teams app development workflows, including scaffolding and registration of app/bot infrastructure. It is not a Python package and is not needed just to run the local bot in Agents Playground.
+
+The official registration quickstart lists Node.js 22.12+ and a Microsoft 365 work/school account with custom app upload enabled as prerequisites; a public HTTPS tunnel may be required to register/test an existing local server.
+
+```bat
+node --version
+npm --version
+npm install -g @microsoft/teams.cli
+teams --help
+```
+
+Use the installed CLI's help and the official quickstart for current commands. Do not assume installing the CLI automatically registers this repository or changes its Python code.
+
+### Microsoft 365 tenant and real Teams deployment
+
+A Microsoft 365 tenant is the organization's identity and service environment for Teams, users and app policies. To install and test a custom app in real Teams, plan for:
+
+1. A Microsoft 365 work or school account with Teams enabled.
+2. Permission to register apps and upload custom Teams apps; an administrator may need to enable the setting.
+3. The appropriate app/bot registration, identity credentials and authentication configuration for this SDK.
+4. A publicly reachable HTTPS messaging endpoint for Teams traffic.
+5. A valid Teams app manifest/package with the required scopes.
+
+A personal Microsoft account by itself is not the work/school tenant needed to develop and install custom Teams apps. Local Python development and Playground testing can start before a tenant is available. An Azure subscription is needed if your selected workflow provisions Azure resources or you host the backend there; it is not automatically required for every local test.
+
+Official resources:
+- [Microsoft 365 Agents Playground](https://learn.microsoft.com/en-us/microsoft-365/agents-sdk/test-with-toolkit-project)
+- [Teams Developer CLI: register your app](https://learn.microsoft.com/en-us/microsoftteams/platform/teams-sdk/get-started/quickstart-register)
+- [Teams app prerequisites](https://learn.microsoft.com/en-us/microsoftteams/platform/toolkit/tools-prerequisites)
+- [Prepare a Microsoft 365 tenant](https://learn.microsoft.com/en-us/microsoftteams/platform/concepts/build-and-test/prepare-your-o365-tenant)
+
+
 ## Real Microsoft Teams deployment
 
 A successful local Playground test does **not** automatically install the bot in Teams. Real Teams deployment needs:
