@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/nx-matrix-teams-ai-logo.webp" alt="NX Matrix AI — Microsoft Teams AI Bot logo" width="280">
+  <img src="assets/nxmatrix-teams-ai.webp" alt="NX Matrix AI — Microsoft Teams AI Bot logo" width="280">
 </p>
 
 <h1 align="center">NX Matrix AI — Microsoft Teams AI Bot</h1>
