@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="docs/index.html">Project Guide</a> · <a href="https://github.com/ns-matrix/nxmatrix-teams-ai/actions">CI Checks</a> · <a href="https://github.com/ns-matrix/nxmatrix-teams-ai/issues">Report an Issue</a>
+  <a href="https://ns-matrix.github.io/nxmatrix-teams-ai">Project Guide</a> · <a href="https://github.com/ns-matrix/nxmatrix-teams-ai/actions">CI Checks</a> · <a href="https://github.com/ns-matrix/nxmatrix-teams-ai/issues">Report an Issue</a>
 </p>
 
 A Windows-first Python bot that connects Microsoft Teams-compatible chat to **Ollama** or another **OpenAI-compatible Chat Completions API**.
